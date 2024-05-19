@@ -1,55 +1,93 @@
 #include <iostream>
-#include <vector>
 #include <queue>
+#include <utility>
 #include <tuple>
-#include "API.cpp"
+#include "API.h"
+#include <string>
 
-const int ROWS = 16;
-const int COLS = 16;
+/* fun fact: API doesn't work here so we cannot actually test it :) 
 
-void floodFill() {
-    
-    int mazeWidth = API::mazeWidth();
-    int mazeHeight = API::mazeHeight();
+inspired by https://www.geeksforgeeks.org/flood-fill-algorithm/
 
-    std::vector<std::vector<int>> maze(ROWS, std::vector<int>(COLS, 0));
+an example from github (mms) which doesn't work as well */
 
-    const std::vector<std::pair<int, int>> moves = {
-        std::make_pair(1, 0),
-        std::make_pair(-1, 0),
-        std::make_pair(0, 1),
-        std::make_pair(0, -1)
-    };
+// void log(const std::string& text) {
+//     std::cerr << text << std::endl;
+// }
 
-    std::queue<std::pair<int, int>> q;
-    q.push({0, 1});
+// int main() {
+//     log("Running...");
+//     API::setColor(0, 0, 'G');
+//     API::setText(0, 0, "abc");
+//     while (true) {
+//         if (!API::wallLeft()) {
+//             API::turnLeft();
+//         }
+//         while (API::wallFront()) {
+//             API::turnRight();
+//         }
+//         API::moveForward();
+//     }
+// }
 
-    while (!q.empty()) {
-        auto [row, col] = q.front(); 
-        q.pop();
 
-        maze[row][col] = 2;
+bool isValid(int x, int y, int prevC, int newC) {
+    return (x >= 0 && x < API::mazeWidth() && y >= 0 && y < API::mazeHeight() &&
+            API::getColor(x, y) == prevC && API::getColor(x, y) != newC);
+}
 
-        bool hasWallFront = API::wallFront();
-        bool hasWallRight = API::wallRight();
-        bool hasWallLeft = API::wallLeft();
+// flood fill using BFS
+void floodFill(int x, int y, int prevC, int newC) {
+    std::queue<std::pair<int, int>> queue;
+    queue.push(std::make_pair(x, y));
 
-        if (!hasWallFront) {
-            API::moveForward();
+    API::setColor(x, y, newC);
+
+    while (!queue.empty()) {
+        std::pair<int, int> currentPixel = queue.front();
+        queue.pop();
+
+        int posX = currentPixel.first;
+        int posY = currentPixel.second;
+
+        // check the neighbors
+        if (isValid(posX + 1, posY, prevC, newC)) {
+            API::setColor(posX + 1, posY, newC);
+            queue.push(std::make_pair(posX + 1, posY));
         }
-        
-        for (const auto& move : moves) {
-            int newRow = row + move.first;
-            int newCol = col + move.second;
 
-            if (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS && maze[newRow][newCol] == 0) {
-                q.push({newRow, newCol});
-            }
+        if (isValid(posX - 1, posY, prevC, newC)) {
+            API::setColor(posX - 1, posY, newC);
+            queue.push(std::make_pair(posX - 1, posY));
+        }
+
+        if (isValid(posX, posY + 1, prevC, newC)) {
+            API::setColor(posX, posY + 1, newC);
+            queue.push(std::make_pair(posX, posY + 1));
+        }
+
+        if (isValid(posX, posY - 1, prevC, newC)) {
+            API::setColor(posX, posY - 1, newC);
+            queue.push(std::make_pair(posX, posY - 1));
         }
     }
 }
 
 int main() {
-    floodFill();
+    
+    int startX = 0, startY = 0;
+    int prevC = API::getColor(startX, startY);
+    int newC = 3;
+
+    
+    floodFill(startX, startY, prevC, newC);
+
+    for (int x = 0; x < API::mazeWidth(); ++x) {
+        for (int y = 0; y < API::mazeHeight(); ++y) {
+            std::cout << API::getColor(x, y) << " ";
+        }
+        std::cout << std::endl;
+    }
+
     return 0;
 }
