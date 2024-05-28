@@ -170,7 +170,7 @@ void floodFill(int startx, int starty,int endx,int endy, int prevC, int newC) {
 
         // check the neighbors
         // setcolor not necessary, I moved it to the top(s. line 63)
-        if (isValid(posX + 1, posY, prevC, newC) && ) {
+        if (isValid(posX + 1, posY, prevC, newC)) {
             //API::setColor(posX + 1, posY, newC);
             queue.push(std::make_pair(posX + 1, posY));
         }
